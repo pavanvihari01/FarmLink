@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: farmlink
+      POSTGRES_USER: farmlink
+      POSTGRES_PASSWORD: farmlink
+    ports: ["5432:5432"]
+    volumes: ["farmlink_data:/var/lib/postgresql/data"]
+volumes:
+  farmlink_data:

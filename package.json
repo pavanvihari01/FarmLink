@@ -1,0 +1,10 @@
+{
+  "name": "farmlink",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --dir frontend dev",
+    "build": "pnpm --dir frontend build",
+    "backend": "python -m uvicorn app.main:app --app-dir backend --reload",
+    "test:backend": "python -m pytest backend/tests"
+  }
+}
