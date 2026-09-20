@@ -1,7 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, ShoppingCart, Sprout, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import LanguageTranslator from './LanguageTranslator';
 import type { User } from '../types';
 
 export default function Header({ user, onLogout }: { user: User | null; onLogout: () => void }) {
@@ -20,6 +21,7 @@ export default function Header({ user, onLogout }: { user: User | null; onLogout
         {open ? <X /> : <Menu />}
       </button>
       <nav className={open ? 'open' : ''}>
+      <LanguageTranslator />
         <Link to="/marketplace">Marketplace</Link>
         <Link to="/how-it-works">How it works</Link>
         {user ? (
@@ -55,3 +57,4 @@ export default function Header({ user, onLogout }: { user: User | null; onLogout
     </header>
   );
 }
+

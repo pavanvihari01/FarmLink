@@ -30,3 +30,67 @@ select{padding:12px;border:1px solid #cfdccb;border-radius:5px;background:#fff;c
 
 @media(max-width:850px){.product-grid{grid-template-columns:repeat(2,1fr)}.hero{min-height:520px}.impact{grid-template-columns:1fr}.impact-items{grid-template-columns:1fr;gap:18px}.metrics{grid-template-columns:1fr}.dashboard-head{align-items:start;gap:15px;flex-direction:column}.cart-row{grid-template-columns:56px 1fr auto;gap:10px}.cart-row img{width:56px;height:56px}.cart-row .qty-input{grid-column:2}.cart-row strong{grid-column:2}}
 @media(max-width:600px){header{height:65px}.menu-button{display:block}nav{display:none;position:absolute;top:64px;right:15px;left:15px;background:#fff;border:1px solid #e1e9de;border-radius:7px;padding:17px;box-shadow:0 10px 22px #183b2420;flex-direction:column;align-items:stretch;gap:15px}nav.open{display:flex}.hero{padding-top:65px;min-height:575px;background:linear-gradient(90deg,rgba(15,40,25,.9),rgba(15,40,25,.5)),url('/images/market-harvest.png') 61% center/cover}.hero h1,.page h1,.auth h1{font-size:2.65rem}.hero-facts{margin-top:35px;gap:17px}.section,.page{padding-top:45px;padding-bottom:45px}.section-heading{align-items:start;gap:18px;flex-direction:column}.product-grid{grid-template-columns:1fr}.filters{flex-direction:column}.filters select{height:41px}.page-intro h1,.dashboard-head h1{font-size:2.5rem}footer{flex-direction:column;align-items:flex-start;gap:10px}}
+
+/* --- Language translator --- */
+.language-translator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 9px;
+  border: 1px solid #d9e5d5;
+  border-radius: 6px;
+  background: #fff;
+  color: #395343;
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.language-translator > span {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.language-translator .goog-te-gadget {
+  font-family: 'DM Sans', Arial, sans-serif !important;
+  font-size: 0 !important;
+}
+
+.language-translator .goog-te-gadget > span {
+  display: none !important;
+}
+
+.language-translator .goog-te-combo {
+  margin: 0 !important;
+  padding: 4px 22px 4px 4px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #395343 !important;
+  font-family: 'DM Sans', Arial, sans-serif !important;
+  font-size: .8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+
+body > .skiptranslate {
+  display: none !important;
+}
+
+
+/* Fix Google Translate top offset */
+html,
+body {
+  margin-top: 0 !important;
+  top: 0 !important;
+}
+
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body > .skiptranslate {
+  display: none !important;
+}
