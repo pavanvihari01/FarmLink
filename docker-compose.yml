@@ -5,7 +5,7 @@ services:
       POSTGRES_DB: farmlink
       POSTGRES_USER: farmlink
       POSTGRES_PASSWORD: farmlink
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
     volumes: ["farmlink_data:/var/lib/postgresql/data"]
 volumes:
   farmlink_data:

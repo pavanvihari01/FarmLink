@@ -3,7 +3,7 @@ import { ArrowRight, Leaf, Sprout } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import type { Listing } from '../types';
 
-export default function Home({ items }: { items: Listing[] }) {
+export default function Home({ items, liveCount }: { items: Listing[]; liveCount: number | null }) {
   return (
     <>
       <section className="hero">
@@ -24,14 +24,19 @@ export default function Home({ items }: { items: Listing[] }) {
               Join FarmLink
             </Link>
           </div>
-          <div className="hero-facts">
-            <span>
-              <strong>42</strong> nearby farms
-            </span>
-            <span>
-              <strong>6h</strong> average harvest-to-order
-            </span>
-          </div>
+          {/* One real figure rather than two invented ones. The count comes from
+              the same listings response the featured cards do.
+              "42 nearby farms" and "6h average harvest-to-order" were literal
+              strings with nothing behind them — the first also claimed
+              proximity the visitor's location was never used to establish. A
+              second stat would need a join nothing computes, so there is one. */}
+          {liveCount !== null && (
+            <div className="hero-facts">
+              <span>
+                <strong>{liveCount}</strong> {liveCount === 1 ? 'listing' : 'listings'} ready now
+              </span>
+            </div>
+          )}
         </div>
       </section>
       <section className="section">

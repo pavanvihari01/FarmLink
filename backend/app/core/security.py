@@ -10,6 +10,9 @@ from app.models.entities import User
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
+# auto_error=False so a missing token resolves to None rather than a 401. Only
+# endpoints that serve anonymous and signed-in callers alike use this.
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl='/auth/login', auto_error=False)
 def hash_password(value:str): return pwd_context.hash(value)
 def verify_password(value:str, hashed:str): return pwd_context.verify(value, hashed)
 def make_token(user:User): return jwt.encode({'sub':str(user.id),'role':user.role,'exp':datetime.utcnow()+timedelta(minutes=get_settings().jwt_expire_minutes)},get_settings().jwt_secret,algorithm='HS256')
@@ -18,6 +21,22 @@ def current_user(token:str=Depends(oauth2_scheme), db:Session=Depends(get_db)):
     except (JWTError, KeyError, ValueError): raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid or expired session')
     user=db.get(User,user_id)
     if not user or not user.is_active: raise HTTPException(status_code=401,detail='Inactive account')
+    return user
+def optional_user(token:str|None=Depends(oauth2_scheme_optional), db:Session=Depends(get_db)):
+    """The signed-in user, or None when there is no usable token.
+
+    Unlike current_user this never raises on a bad token. The browser attaches
+    Authorization to every request whenever localStorage holds one, so a stale
+    token would otherwise 401 the whole public marketplace. An expired or
+    malformed token degrades to "anonymous" here, and anything that genuinely
+    needs an identity still goes through current_user, which does raise.
+    """
+    if not token:
+        return None
+    try: user_id=int(jwt.decode(token,get_settings().jwt_secret,algorithms=['HS256'])['sub'])
+    except (JWTError, KeyError, ValueError): return None
+    user=db.get(User,user_id)
+    if not user or not user.is_active: return None
     return user
 def require_roles(*roles):
     def checker(user:User=Depends(current_user)):

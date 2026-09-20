@@ -37,12 +37,17 @@ export default function HowItWorks() {
             <h2>What happens after you order</h2>
           </div>
         </div>
-        <div className="impact-items">
-          {steps.map((s) => (
-            <span key={s.title}>
-              <b>{s.title}</b>
-              {s.body}
-            </span>
+        <div className="product-grid">
+          {steps.map((s, i) => (
+            <article className="product-card" key={s.title}>
+              <div className="product-body">
+                <div className="card-top">
+                  <span className="badge fresh">Step {i + 1}</span>
+                </div>
+                <h3>{s.title}</h3>
+                <p className="muted">{s.body}</p>
+              </div>
+            </article>
           ))}
         </div>
       </section>
