@@ -45,6 +45,10 @@ export default function Checkout() {
       setError('Choose a delivery address, or switch to pickup.');
       return;
     }
+    if (method === 'delivery' && selectedAddress && !hasPin(selectedAddress)) {
+      setError('Please pin your delivery location on the map.');
+      return;
+    }
     setPlacing(true);
     try {
       const payload: CheckoutPayload = {
@@ -54,8 +58,8 @@ export default function Checkout() {
       };
       if (method === 'delivery' && selectedAddress) {
         payload.delivery_address = addressLine(selectedAddress);
-        // Snapshot the pin so the farmer's route has a real destination. An
-        // unpinned address is allowed and lands in the unroutable bucket.
+        // The guard above already rejected an unpinned address, so the pin is
+        // present. hasPin narrows the type for the compiler.
         if (hasPin(selectedAddress)) {
           payload.delivery_latitude = selectedAddress.latitude;
           payload.delivery_longitude = selectedAddress.longitude;

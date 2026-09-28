@@ -55,7 +55,7 @@ export default function EditListing({ user }: { user: User }) {
         setPrice(String(x.price_per_unit));
         setUnit(x.unit);
         setQuantity(String(x.available_quantity));
-        setLifespan(String(x.remaining_hours > 0 ? x.remaining_hours : 48));
+        setLifespan(String(x.lifespan_hours));
         setOrganic(x.organic);
         setBulkAvailable(x.bulk_available);
         setLocationText(x.location);
@@ -234,9 +234,13 @@ export default function EditListing({ user }: { user: User }) {
         </label>
 
         <label>
-          Useful life (hours)
+          Expected lifespan (hours)
           <input type="number" min="1" max="720" value={lifespan} onChange={(e) => setLifespan(e.target.value)} required />
         </label>
+
+        <p className="muted" style={{ margin: 0 }}>
+          Remaining freshness: {listing.remaining_hours > 0 ? `${listing.remaining_hours} hours` : 'expired'}
+        </p>
 
         <div style={{ display: 'flex', gap: 20 }}>
           <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontWeight: 400 }}>

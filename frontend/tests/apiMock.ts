@@ -88,6 +88,7 @@ function defaults() {
     }),
     adminUsers: ok([]),
     adminSetUserActive: fail('not signed in'),
+    adminSetUserVerification: fail('not signed in'),
     adminListings: ok([]),
     adminOrders: ok([]),
     adminSetListingStatus: fail('not signed in'),

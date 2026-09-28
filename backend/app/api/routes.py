@@ -13,7 +13,8 @@ from app.models.entities import (
     Subscription, SubscriptionCycle, User,
 )
 from app.schemas.api import (
-    AddressInput, AddressUpdateInput, AdminListingStatusInput, AuthOut,
+    AddressInput, AddressUpdateInput, AdminListingStatusInput,
+    AdminVerificationInput, AuthOut,
     CategoryInput, CategoryUpdateInput, CheckoutInput, DeliveryStatusInput,
     FarmerOut, ListingCreate, ListingUpdate, LoginInput, OrderCreate,
     OrderStatusInput, PasswordChangeInput, PaymentMethodInput,
@@ -81,7 +82,7 @@ FARMER_AFFINITY_BONUS=4.0
 # which is the opposite of the point.
 FRESHNESS_SCORE_CAP_HOURS=168
 
-def user_out(u:User): return UserOut(id=u.id,name=u.name,email=u.email,role=u.role,is_active=u.is_active,phone=u.phone)
+def user_out(u:User): return UserOut(id=u.id,name=u.name,email=u.email,role=u.role,is_active=u.is_active,phone=u.phone,verification_status=u.verification_status)
 def listing_out(x:Listing, status:str|None=None, hours:int|None=None, distance_km:float|None=None, *, reason:str|None=None, include_moderation:bool=False):
     if status is None or hours is None:
         status, hours = freshness(x)
@@ -99,10 +100,13 @@ def listing_out(x:Listing, status:str|None=None, hours:int|None=None, distance_k
         'available_quantity':x.available_quantity,
         'organic':x.organic,
         'bulk_available':x.bulk_available,
-        'freshness_status':status,
+         'freshness_status':status,
         'remaining_hours':hours,
+        'lifespan_hours':x.lifespan_hours,      # ← add
         'image_url':x.image_url,
-        'verified':x.farmer.role=='farmer',
+        # Was a role check, which is true for every listing since only
+        # farmers can create one. Now it reflects an admin decision.
+        'verified':x.farmer.verification_status=='verified',
         'latitude':x.latitude,
         'longitude':x.longitude,
         'distance_km':round(distance_km, 1) if distance_km is not None else None,
@@ -1065,6 +1069,7 @@ def admin_list_users(user:User=Depends(require_roles('admin')),db:Session=Depend
         report_count=db.scalar(select(func.count()).select_from(Report).where(Report.reported_user_id==u.id)) or 0
         out.append({
             'id':u.id,'name':u.name,'email':u.email,'role':u.role,'is_active':u.is_active,
+            'verification_status':u.verification_status,
             'created_at':u.created_at.isoformat(),'listing_count':listing_count,'report_count':report_count,
         })
     return out
@@ -1106,6 +1111,33 @@ def admin_set_user_active(user_id:int,data:UserActiveInput,user:User=Depends(req
 
     db.commit()
     return {'id':target.id,'is_active':target.is_active,'listings_affected':affected}
+
+@router.patch('/admin/users/{user_id}/verification')
+def admin_set_user_verification(
+    user_id:int,
+    data:AdminVerificationInput,
+    user:User=Depends(require_roles('admin')),
+    db:Session=Depends(get_db),
+):
+    """Grant or withdraw the verified badge on a farmer account.
+
+    Only farmers can be verified. The badge is a claim about a seller and
+    it renders on their listings, so a verified buyer would carry a status
+    nothing displays and a verified admin would be attesting to their own
+    account. Both are refused rather than silently accepted.
+
+    This is separate from /active on purpose. Deactivating a farmer
+    suspends their listings; it does not revoke a verification an admin
+    granted, and reactivating them does not restore one that was
+    withdrawn. The two are independent decisions.
+    """
+    target=db.get(User,user_id)
+    if not target: raise HTTPException(404,'User not found')
+    if target.role!='farmer':
+        raise HTTPException(422,'Only farmer accounts can be verified')
+    target.verification_status=data.verification_status
+    db.commit()
+    return {'id':target.id,'verification_status':target.verification_status}
 
 # ---------------------------------------------------------------------------
 # Admin — listings

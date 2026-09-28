@@ -2,12 +2,13 @@
  * What Checkout sends, and what it snapshots.
  *
  * The coordinate snapshot is the contract between the buyer's saved address and
- * the farmer's delivery route. An address with a pin must carry its latitude
- * and longitude onto the order; an address without one must not invent them,
- * and the order is expected to land in the farmer's unroutable bucket instead.
+ * the farmer's delivery route. A delivery must carry a pin: the backend's
+ * _require_delivery_pin rejects the whole checkout request without one, before
+ * the per-item loop, so an unpinned address fails every line in the cart rather
+ * than falling into the farmer's unroutable bucket.
  *
- * Nothing on the backend tests this. The payload is assembled in the browser
- * and the API accepts it either way.
+ * The unroutable bucket is for legacy orders and subscription cycles that
+ * predate the pin rule, not for new checkouts.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
@@ -87,20 +88,17 @@ describe('Checkout payload', () => {
     expect(payload.delivery_longitude).toBe(73.8567);
   });
 
-  it('sends no coordinates when the address has no pin', async () => {
+    it('refuses to place a delivery to an unpinned address', async () => {
     seedCart();
     api.addresses.mockResolvedValue([unpinnedAddress]);
     renderWithProviders(<Checkout />);
 
     await userEvent.click(await screen.findByRole('button', { name: /place order/i }));
 
-    await waitFor(() => expect(api.checkout).toHaveBeenCalledTimes(1));
-    const payload = lastPayload()!;
-    expect(payload.delivery_address).toBe('12 Market Road, Pune, Maharashtra, 411001');
-    // Absent rather than null — the order should fall into unroutable on the
-    // backend, not carry a fabricated position.
-    expect(payload.delivery_latitude).toBeUndefined();
-    expect(payload.delivery_longitude).toBeUndefined();
+    // The backend's _require_delivery_pin rejects the whole checkout, not one
+    // line, so the frontend must not let the request leave.
+    expect(api.checkout).not.toHaveBeenCalled();
+    expect(await screen.findByText(/please pin your delivery location/i)).toBeTruthy();
   });
 
   it('sends the cart lines as listing ids and quantities', async () => {
@@ -137,14 +135,14 @@ describe('Checkout payload', () => {
     await userEvent.click(await screen.findByRole('button', { name: /place order/i }));
 
     expect(api.checkout).not.toHaveBeenCalled();
-    expect(await screen.findByText(/choose a delivery address/i)).toBeInTheDocument();
+    expect(await screen.findByText(/choose a delivery address/i)).toBeTruthy();
   });
 
   it('shows an empty cart rather than a form when there is nothing to buy', async () => {
     api.addresses.mockResolvedValue([pinnedAddress]);
     renderWithProviders(<Checkout />);
 
-    expect(await screen.findByText(/your cart is empty/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /place order/i })).not.toBeInTheDocument();
+    expect(await screen.findByText(/your cart is empty/i)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /place order/i })).toBeNull();
   });
 });

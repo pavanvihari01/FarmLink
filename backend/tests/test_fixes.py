@@ -2,7 +2,7 @@
 import io
 from datetime import datetime, timedelta
 
-import pytest
+import pytest  # type: ignore[import-not-found]
 
 from app.models.entities import Address, Listing, Order, Report
 
@@ -682,3 +682,46 @@ def test_removing_a_listing_keeps_its_image(client, db, auth, make_user, make_li
 
     # Soft delete is reversible, so the photo has to survive.
     assert stored.exists()
+
+
+
+def test_editing_non_freshness_fields_leaves_expires_at_alone(client, db, auth, make_user, make_listing):
+    """Editing price/quantity/description/location must not move expires_at.
+
+    Regression context: EditListing.tsx seeded its lifespan field from
+    remaining_hours, so every save resubmitted a shortened lifespan and
+    update_listing recomputed expires_at from it. A 96h listing edited 24h in
+    became a 72h listing, and each further edit shrank it again.
+
+    The fix is on the client. It now seeds from lifespan_hours and resends the
+    original value. What this test pins is the server-side invariant that makes
+    that fix sufficient: expires_at is a pure function of the base time and
+    lifespan_hours, so an edit touching neither recomputes to the same value.
+    It would fail if the endpoint ever derived lifespan from elapsed time.
+    """
+    farmer = make_user('farmer@test.demo', 'farmer')
+    listing = make_listing(farmer, lifespan_hours=96, age_hours=24)
+
+    def edit_price(price):
+        r = client.patch(
+            f'/listings/{listing.id}',
+            json={
+                'price_per_unit': price,
+                'available_quantity': 7,
+                'description': 'Updated description',
+                'location_text': 'Updated location',
+                'lifespan_hours': 96,
+            },
+            headers=auth(farmer),
+        )
+        assert r.status_code == 200
+        return r.json()
+
+    first = edit_price(42.0)
+    second = edit_price(43.0)
+
+    assert first['lifespan_hours'] == 96
+    assert second['lifespan_hours'] == 96
+    # The ratchet is what made the bug visible. Two edits must land on one
+    # value; under the old behaviour each save shortened the listing further.
+    assert first['expires_at'] == second['expires_at']

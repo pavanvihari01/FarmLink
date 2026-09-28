@@ -2,6 +2,8 @@ export type Freshness = 'Fresh' | 'Use Soon' | 'Expiring' | 'Expired';
 
 export type ListingModerationStatus = 'active' | 'suspended' | 'removed';
 
+export type VerificationStatus = 'unverified' | 'verified';
+
 export type Listing = {
   id: number;
   title: string;
@@ -19,6 +21,8 @@ export type Listing = {
   freshness_status: Freshness;
   remaining_hours: number;
   image_url: string;
+  // True only when the owning farmer's verification_status is 'verified'.
+  // Set by an admin through PATCH /admin/users/{id}/verification.
   verified: boolean;
   latitude: number | null;
   longitude: number | null;
@@ -39,6 +43,9 @@ export type User = {
   role: 'farmer' | 'buyer' | 'admin';
   is_active?: boolean;
   phone?: string | null;
+  // Optional so object literals in test fixtures that predate the field still
+  // compile. Absent reads as unverified, which is the correct default.
+  verification_status?: VerificationStatus;
 };
 
 export type Farmer = {
@@ -284,6 +291,7 @@ export type AdminUser = {
   created_at: string;
   listing_count: number;
   report_count: number;
+  verification_status?: VerificationStatus;
 };
 
 export type AdminListing = {

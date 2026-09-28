@@ -93,6 +93,17 @@ export default function Admin({ user }: { user: User }) {
     }
   };
 
+  const toggleVerified = async (u: AdminUser) => {
+    const next = u.verification_status === 'verified' ? 'unverified' : 'verified';
+    await run(
+      u.id,
+      () => api.adminSetUserVerification(u.id, next),
+      next === 'verified'
+        ? `${u.name} is now a verified farmer. Their listings show the badge.`
+        : `${u.name} is no longer verified. The badge is gone from their listings.`,
+    );
+  };
+
   const setListingStatus = (l: AdminListing, status: ListingModerationStatus, note?: string, cancel?: boolean) =>
     run(l.id, () => api.adminSetListingStatus(l.id, status, note, cancel), `${l.title} is now ${STATUS_LABEL[status].toLowerCase()}.`);
 
@@ -229,19 +240,24 @@ export default function Admin({ user }: { user: User }) {
             const isSelf = u.id === user.id;
             const isAdmin = u.role === 'admin';
             const blocked = isSelf || isAdmin;
+            const isFarmer = u.role === 'farmer';
+            const isVerified = u.verification_status === 'verified';
             return (
               <article className="order-card" key={u.id}>
                 <div className="order-head">
                   <strong>
                     {u.name}
                     {!u.is_active && <span className="badge expired" style={{ marginLeft: 8 }}>Deactivated</span>}
+                    {isFarmer && isVerified && (
+                      <span className="order-status accepted" style={{ marginLeft: 8 }}>Verified</span>
+                    )}
                   </strong>
                   <span className={`order-status ${u.role === 'admin' ? 'accepted' : ''}`}>{u.role}</span>
                 </div>
                 <p className="muted">
                   {u.email} · {u.listing_count} listings · {u.report_count} reports
                 </p>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <button
                     className={u.is_active ? 'text-button' : 'button small'}
                     onClick={() => toggleActive(u)}
@@ -250,6 +266,17 @@ export default function Admin({ user }: { user: User }) {
                   >
                     {busyId === u.id ? 'Working…' : u.is_active ? 'Deactivate' : 'Reactivate'}
                   </button>
+
+                  {isFarmer && (
+                    <button
+                      className={isVerified ? 'text-button' : 'button small'}
+                      onClick={() => toggleVerified(u)}
+                      disabled={busyId === u.id}
+                      title={isVerified ? 'Remove the verified badge from this farmer' : 'Grant the verified badge to this farmer'}
+                    >
+                      {busyId === u.id ? 'Working…' : isVerified ? 'Remove verification' : 'Verify farmer'}
+                    </button>
+                  )}
                   {blocked && (
                     <span className="muted">
                       {isSelf ? 'That is your own account.' : 'Admin accounts are protected.'}

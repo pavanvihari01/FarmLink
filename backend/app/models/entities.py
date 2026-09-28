@@ -12,6 +12,13 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20), default='buyer')
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 'unverified' | 'verified'. Set by an admin, never by the account holder.
+    # Read by listing_out to decide whether a listing shows the badge. Only
+    # farmers can hold 'verified': the badge is a claim about a seller, and
+    # buyers have no listings for it to appear on.
+    verification_status: Mapped[str] = mapped_column(
+        String(20), default='unverified', server_default='unverified'
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     listings: Mapped[list['Listing']] = relationship(back_populates='farmer')
 

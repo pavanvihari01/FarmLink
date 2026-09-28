@@ -17,6 +17,9 @@ class UserOut(BaseModel):
     role:str
     is_active:bool=True
     phone:str|None=None
+    # 'unverified' | 'verified'. Defaulted so existing constructions that do
+    # not set it still validate; user_out always passes the real value.
+    verification_status:str='unverified'
 
 class AuthOut(BaseModel): access_token:str; token_type:str='bearer'; user:UserOut
 
@@ -162,6 +165,11 @@ class SubscriptionInput(BaseModel):
 # ---------------------------------------------------------------------------
 class UserActiveInput(BaseModel):
     is_active: bool
+
+class AdminVerificationInput(BaseModel):
+    # Two states, matching the column. A 'pending' value would be accepted here
+    # and then never produced by any endpoint, so it is not offered.
+    verification_status: Literal['unverified', 'verified']
 
 class AdminListingStatusInput(BaseModel):
     status: Literal['active', 'suspended', 'removed']

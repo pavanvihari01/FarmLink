@@ -1,4 +1,4 @@
-import type { Address, AdminListing, AdminMetrics, AdminUser, Category, CheckoutResult, CreateSubscriptionPayload, DashboardSummary, DeliveryMethod, DeliveryRoute, DeliveryStatus, Farmer, Forecast, Listing, ListingModerationStatus, ListingQuery, Order, OrderStatus, PaginatedListings, PaymentMethod, Report, ReportAgainstMe, ReportReason, ReportStatus, Subscription, User } from '../types';
+import type { Address, AdminListing, AdminMetrics, AdminUser, Category, CheckoutResult, CreateSubscriptionPayload, DashboardSummary, DeliveryMethod, DeliveryRoute, DeliveryStatus, Farmer, Forecast, Listing, ListingModerationStatus, ListingQuery, Order, OrderStatus, PaginatedListings, PaymentMethod, Report, ReportAgainstMe, ReportReason, ReportStatus, Subscription, User, VerificationStatus } from '../types';
 const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const headers = () => ({ 'Content-Type': 'application/json', ...(localStorage.token ? { Authorization: `Bearer ${localStorage.token}` } : {}) });
 async function request<T>(path: string, options?: RequestInit): Promise<T> { const r = await fetch(base + path, { ...options, headers: { ...headers(), ...options?.headers } }); if (!r.ok) throw new Error((await r.json().catch(() => ({ detail: 'Request failed' }))).detail); return r.json(); }
@@ -196,6 +196,8 @@ export const api = {
   adminUsers: () => request<AdminUser[]>('/admin/users'),
   adminSetUserActive: (id: number, is_active: boolean) =>
     request<{id:number; is_active:boolean; listings_affected:number}>(`/admin/users/${id}/active`, {method:'PATCH', body:JSON.stringify({is_active})}),
+  adminSetUserVerification: (id: number, verification_status: VerificationStatus) =>
+    request<{id:number; verification_status:VerificationStatus}>(`/admin/users/${id}/verification`, {method:'PATCH', body:JSON.stringify({verification_status})}),
   adminListings: () => request<AdminListing[]>('/admin/listings'),
   adminOrders: () => request<Order[]>('/admin/orders'),
   adminSetListingStatus: (
