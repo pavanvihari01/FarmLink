@@ -87,7 +87,7 @@ export default function ListingDetail({ user }: { user: User | null }) {
         <Link to="/marketplace">Marketplace</Link> · {listing.category}
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 1fr)', gap: 32, alignItems: 'start' }}>
+      <div className="listing-layout">
         <div>
           <img
             src={listing.image_url}

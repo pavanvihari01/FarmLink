@@ -94,3 +94,6 @@ body {
 body > .skiptranslate {
   display: none !important;
 }
+
+.listing-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:start}
+@media(max-width:850px){.listing-layout{grid-template-columns:1fr;gap:20px}}

@@ -20,6 +20,7 @@ export type Listing = {
   bulk_available: boolean;
   freshness_status: Freshness;
   remaining_hours: number;
+  lifespan_hours: number;
   image_url: string;
   // True only when the owning farmer's verification_status is 'verified'.
   // Set by an admin through PATCH /admin/users/{id}/verification.
